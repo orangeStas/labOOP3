@@ -1,9 +1,11 @@
 package WorkersPack;
 
+import java.io.Serializable;
+
 /**
  * Created by OrangeUser on 3/28/2015.
  */
-public abstract class Worker {
+public abstract class Worker implements Serializable {
     public String name;
     public int age;
     public int skill;

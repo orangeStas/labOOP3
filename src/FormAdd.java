@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
@@ -14,10 +15,9 @@ public class FormAdd extends JFrame {
 
     public ArrayList<Class<?>> classesList;
     public WorkersList workersList;
-    Class<?>[] variables;
+    Class<?>[] typesOfArgs;
     Panel panel;
     ArrayList<TextArea> areasList;
-    String[] opts;
 
     public FormAdd(WorkersList workersList){
         initGUI();
@@ -26,8 +26,7 @@ public class FormAdd extends JFrame {
     }
 
     public void initGUI(){
-        setLocationRelativeTo(null);
-        //setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        //setLocationRelativeTo(null);
         final JComboBox workersBox = new JComboBox(getArrayProfessions());
         Button addButton = new Button("Add");
         addButton.addActionListener(new ActionListener() {
@@ -37,7 +36,6 @@ public class FormAdd extends JFrame {
             }
         });
 
-
         add(workersBox);
         add(addButton);
         panel = new Panel();
@@ -45,23 +43,7 @@ public class FormAdd extends JFrame {
         workersBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                remove(panel);
-                panel = new Panel();
-                panel.setLayout(new FlowLayout());
-                JComboBox box = (JComboBox)e.getSource();
-                variables = classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].getParameterTypes();
-                areasList = new ArrayList<TextArea>();
-                for (Class<?> comp : variables){
-                    TextArea textArea = new TextArea(comp.getSimpleName());
-                    textArea.setPreferredSize(new Dimension( 200, 100));
-                    panel.add(textArea);
-                    areasList.add(textArea);
-                }
-                add(panel);
-                revalidate();
-                repaint();
-                setLayout(new FlowLayout());
-                pack();
+                chooseProfession(e);
             }
         });
 
@@ -70,14 +52,55 @@ public class FormAdd extends JFrame {
 
     }
 
+    public void chooseProfession(ActionEvent e){
+        remove(panel);
+        panel = new Panel();
+        panel.setLayout(new FlowLayout());
+        JComboBox box = (JComboBox)e.getSource();
+        typesOfArgs = classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].getParameterTypes();
+
+        Field[] nameFields = getFieldsName(classesList.get(box.getSelectedIndex()));
+
+        areasList = new ArrayList<TextArea>();
+        for (int i = 0 ; i < typesOfArgs.length; i++) {
+            TextArea textArea = new TextArea(typesOfArgs[i].getSimpleName());
+            textArea.setPreferredSize(new Dimension(200, 100));
+            panel.add(new Label(nameFields[i].getName()));
+            panel.add(textArea);
+            areasList.add(textArea);
+        }
+        add(panel);
+        revalidate();
+        repaint();
+        setLayout(new FlowLayout());
+        pack();
+    }
+
+    public Field[] getFieldsName(Class<?> choosenClass){
+        Field[] fields = new Field[choosenClass.getFields().length];// + choosenClass.getDeclaredFields().length];
+        Field[] tempFields = choosenClass.getFields();
+        Field[] tempDeclaredFields = choosenClass.getDeclaredFields();
+        for (int i = 0 ; i < tempFields.length ; i++) {
+            fields[i] = tempFields[i];
+        }
+//        for (int i = tempFields.length, j = 0; i < fields.length; i++, j++){
+//            fields[i] = tempDeclaredFields[j];
+//        }
+        return fields;
+    }
+
     public void addNewWorker(JComboBox box){
         try {
-            opts = new String[variables.length];
-            for (int i = 0; i < opts.length ; i++){
-                opts[i] = areasList.get(i).getText();
+            Object[] args = new Object[typesOfArgs.length];
+            for (int i = 0 ; i < areasList.size(); i++){
+                String data = areasList.get(i).getText();
+                if (typesOfArgs[i].getSimpleName().contains("int") || typesOfArgs[i].getSimpleName().contains("Integer"))
+                    args[i] = Integer.parseInt(data);
+                else if (typesOfArgs[i].getSimpleName().contains("String"))
+                    args[i] = data;
             }
-            workersList.insertWorker((Worker) classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].newInstance(opts));
-            main.comboBox.addItem(workersList.getWorkersName()[workersList.getWorkers().size()-1]);
+            workersList.addWorker((Worker) classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].newInstance(args));
+            main.comboBox.addItem(workersList.getWorkersName()[workersList.getWorkers().size() - 1]);
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

@@ -22,8 +22,16 @@ public class WorkersList {
         return names;
     }
 
-    public void insertWorker(Worker worker){
+    public void addWorker(Worker worker){
         workers.add(worker);
+    }
+
+    public void insertWorker(Worker worker, int index){
+        workers.set(index, worker);
+    }
+
+    public void removeWorker(int index){
+        workers.remove(index);
     }
 
     public Worker getWorker(int index){

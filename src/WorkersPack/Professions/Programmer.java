@@ -7,9 +7,13 @@ import WorkersPack.Instruments.Computer;
  * Created by OrangeUser on 3/28/2015.
  */
 public class Programmer extends IngeneerWorker {
-    private Computer computer;
-    private String language;
-    public Programmer(String name, Integer age, Integer skill, String language) {
+    public String Name;
+    public int Age;
+    public int Skill;
+    public String language;
+    public Computer computer;
+
+    public Programmer(String name, int age, int skill, String language) {
         super(name, age, skill);
         computer = new Computer(this);
         this.language = language;

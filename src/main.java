@@ -1,9 +1,10 @@
-import WorkersPack.Professions.Programmer;
+import WorkersPack.Worker;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 
 public class main extends JFrame {
 
@@ -19,8 +20,6 @@ public class main extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        workersList.insertWorker(new Programmer("Programmer1", 21, 2, "Java"));
-        workersList.insertWorker(new Programmer("Programmer2", 26, 3, "C#"));
 
         comboBox = new JComboBox(workersList.getWorkersName());
 
@@ -37,6 +36,11 @@ public class main extends JFrame {
 
         Button addButton = new Button("Add Worker");
         Button editButton = new Button("Edit");
+        Button removeButton = new Button("Remove");
+        Button serializeButton = new Button("Serialize object");
+        final Button deserializeButton = new Button("Deserialize object");
+
+
 
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -48,15 +52,69 @@ public class main extends JFrame {
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                new FormEdit(workersList, comboBox.getSelectedIndex());
+            }
+        });
 
+        removeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeWorker();
+            }
+        });
+
+        serializeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    serializeObj();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        deserializeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    deserializeObj();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                } catch (ClassNotFoundException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
 
         add(addButton);
         add(editButton);
-
+        add(removeButton);
+        add(serializeButton);
+        add(deserializeButton);
         setLayout(new FlowLayout());
         pack();
+    }
+
+    public void removeWorker(){
+        int index = comboBox.getSelectedIndex();
+        comboBox.removeItemAt(index);
+        workersList.removeWorker(index);
+    }
+
+    public void serializeObj() throws IOException {
+        FileOutputStream fos = new FileOutputStream("temp.out");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(workersList.getWorker(comboBox.getSelectedIndex()));
+        oos.flush();
+        oos.close();
+    }
+
+    public void deserializeObj() throws IOException, ClassNotFoundException {
+        FileInputStream fis = new FileInputStream("temp.out");
+        ObjectInputStream oin = new ObjectInputStream(fis);
+        workersList.addWorker((Worker) oin.readObject());
+        comboBox.addItem(workersList.getWorker(workersList.getWorkers().size()-1).getName());
     }
 
 
