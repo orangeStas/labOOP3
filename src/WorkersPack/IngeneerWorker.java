@@ -7,4 +7,6 @@ public abstract class IngeneerWorker extends Worker {
     public IngeneerWorker(String name, int age, int skill) {
         super(name, age, skill);
     }
+
+
 }

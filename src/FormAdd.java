@@ -65,7 +65,7 @@ public class FormAdd extends JFrame {
         for (int i = 0 ; i < typesOfArgs.length; i++) {
             TextArea textArea = new TextArea(typesOfArgs[i].getSimpleName());
             textArea.setPreferredSize(new Dimension(200, 100));
-            panel.add(new Label(nameFields[i].getName()));
+            //panel.add(new Label(nameFields[i].getName()));
             panel.add(textArea);
             areasList.add(textArea);
         }

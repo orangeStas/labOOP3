@@ -16,10 +16,12 @@ public abstract class Worker implements Serializable {
         this.skill = skill;
     }
 
+
     public abstract int getSkill();
 
     public abstract void setSkill();
 
     public abstract String getName();
+
 
 }

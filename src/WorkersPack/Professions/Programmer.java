@@ -7,9 +7,9 @@ import WorkersPack.Instruments.Computer;
  * Created by OrangeUser on 3/28/2015.
  */
 public class Programmer extends IngeneerWorker {
-    public String Name;
-    public int Age;
-    public int Skill;
+//    public String Name;
+//    public int Age;
+//    public int Skill;
     public String language;
     public Computer computer;
 
@@ -32,6 +32,18 @@ public class Programmer extends IngeneerWorker {
     @Override
     public String getName() {
         return name;
+    }
+
+    public int getAge(){
+        return age;
+    }
+
+    public String getLanguage(){
+        return language;
+    }
+
+    public Computer getComputer(){
+        return computer;
     }
 
     public void writeCode() throws InterruptedException {
