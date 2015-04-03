@@ -9,4 +9,8 @@ public abstract class HardWorker extends Worker {
         super(name, age, skill);
         this.hammerName = hammerName;
     }
+
+    public HardWorker(){
+
+    }
 }

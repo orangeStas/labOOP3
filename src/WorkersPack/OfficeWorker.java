@@ -8,5 +8,9 @@ public abstract class OfficeWorker extends Worker {
         super(name, age, skill);
     }
 
+    public OfficeWorker(){
+
+    }
+
     public abstract void getReport();
 }

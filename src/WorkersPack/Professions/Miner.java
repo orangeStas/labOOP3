@@ -16,6 +16,10 @@ public class Miner extends HardWorker {
         this.haveFlashlight = haveFlashlight;
     }
 
+    public Miner(){
+
+    }
+
     @Override
     public int getSkill() {
         return skill;

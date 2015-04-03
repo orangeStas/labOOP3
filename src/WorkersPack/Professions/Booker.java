@@ -15,6 +15,8 @@ public class Booker extends OfficeWorker {
         this.countClients =  countClients;
     }
 
+    public Booker(){}
+
     @Override
     public int getSkill() {
         return skill;

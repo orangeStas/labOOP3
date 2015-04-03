@@ -16,6 +16,10 @@ public abstract class Worker implements Serializable {
         this.skill = skill;
     }
 
+    public Worker(){
+
+    }
+
 
     public abstract int getSkill();
 

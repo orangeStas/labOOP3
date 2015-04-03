@@ -16,6 +16,8 @@ public class Programmer extends IngeneerWorker {
         this.language = language;
     }
 
+    public Programmer(){}
+
     @Override
     public int getSkill() {
         return skill;

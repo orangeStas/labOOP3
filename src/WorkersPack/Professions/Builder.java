@@ -13,6 +13,8 @@ public class Builder extends HardWorker {
         hammer = new Hammer(hammerName, this);
     }
 
+    public Builder(){}
+
     @Override
     public int getSkill() {
         return skill;

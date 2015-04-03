@@ -6,6 +6,10 @@ package WorkersPack;
 public abstract class IngeneerWorker extends Worker {
     public boolean haveScheme;
 
+    public IngeneerWorker(){
+
+    }
+
     public IngeneerWorker(String name, int age, int skill, boolean haveScheme) {
         super(name, age, skill);
         this.haveScheme = haveScheme;

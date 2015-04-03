@@ -10,6 +10,8 @@ public class MechanicalIngeneer extends IngeneerWorker {
         super(name, age, skill, haveSheme);
     }
 
+    public MechanicalIngeneer(){}
+
     @Override
     public int getSkill() {
         return skill;
