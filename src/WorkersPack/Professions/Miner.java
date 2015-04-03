@@ -8,10 +8,12 @@ import WorkersPack.Instruments.Hammer;
  */
 public class Miner extends HardWorker {
     private Hammer hammer;
+    public boolean haveFlashlight;
 
-    public Miner(String name, int age, int skill) {
-        super(name, age, skill);
-        hammer = new Hammer(this);
+    public Miner(String name, int age, int skill, String hammerName, boolean haveFlashlight) {
+        super(name, age, skill, hammerName);
+        hammer = new Hammer(hammerName, this);
+        this.haveFlashlight = haveFlashlight;
     }
 
     @Override
@@ -32,4 +34,5 @@ public class Miner extends HardWorker {
     public void getGold(){
         hammer.getWork();
     }
+
 }

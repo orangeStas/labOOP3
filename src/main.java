@@ -32,6 +32,7 @@ public class main extends JFrame {
                 String item = (String)box.getSelectedItem();
                 int index = box.getSelectedIndex();
                 System.out.println(item + " - " + index);
+                System.out.println(workersList.getWorker(index).toString());
             }
         });
         add(comboBox);
@@ -44,7 +45,7 @@ public class main extends JFrame {
 
         final JRadioButton textFileButt = new JRadioButton("Text File");
         final JRadioButton xmlFileButt = new JRadioButton("XML File");
-        JRadioButton binFileButt = new JRadioButton("BIN File");
+        final JRadioButton binFileButt = new JRadioButton("BIN File");
         buttonGroup.add(textFileButt);
         buttonGroup.add(xmlFileButt);
         buttonGroup.add(binFileButt);
@@ -82,7 +83,7 @@ public class main extends JFrame {
                     if (xmlFileButt.isSelected())
                         serializeObjXMLFile();
                     else if (textFileButt.isSelected())
-                        serializeObjTextFile();
+                        serializeObjBINFile();
                 } catch (IOException e1){
                     e1.printStackTrace();
                 }
@@ -96,8 +97,8 @@ public class main extends JFrame {
                 try {
                     if (xmlFileButt.isSelected())
                         deserializeObjXMLFile();
-                    else if (textFileButt.isSelected())
-                        deserializeObjTextFile();
+                    else if (binFileButt.isSelected())
+                        deserializeObjBINFile();
                 } catch (IOException e1){
                     e1.printStackTrace();
                 } catch (ClassNotFoundException e1) {
@@ -127,7 +128,7 @@ public class main extends JFrame {
         workersList.removeWorker(index);
     }
 
-    public void serializeObjTextFile() throws IOException {
+    public void serializeObjBINFile() throws IOException {
         FileOutputStream fileOutputStream = new FileOutputStream("object.txt");
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
         objectOutputStream.writeObject(workersList.getWorker(comboBox.getSelectedIndex()));
@@ -136,7 +137,7 @@ public class main extends JFrame {
         fileOutputStream.close();
     }
 
-    public void deserializeObjTextFile() throws IOException, ClassNotFoundException {
+    public void deserializeObjBINFile() throws IOException, ClassNotFoundException {
         FileInputStream fileInputStream = new FileInputStream("object.txt");
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
         workersList.addWorker((Worker) objectInputStream.readObject());
@@ -149,7 +150,6 @@ public class main extends JFrame {
 
         FileOutputStream fileOutputStream = new FileOutputStream("object.xml");
         XStream xStream = new XStream();
-        //xStream.alias("classserialize", workersList.getWorker(comboBox.getSelectedIndex()).getClass());
         xStream.toXML(workersList.getWorker(comboBox.getSelectedIndex()), fileOutputStream);
         fileOutputStream.close();
 
@@ -158,7 +158,6 @@ public class main extends JFrame {
     public void deserializeObjXMLFile() throws IOException {
         FileInputStream fileInputStream = new FileInputStream("object.xml");
         XStream xStream = new XStream();
-        //xStream.alias("classserialize", Worker.class);
         workersList.addWorker((Worker) xStream.fromXML(fileInputStream));
         comboBox.addItem(workersList.getWorker(workersList.getWorkers().size()-1).getName());
         fileInputStream.close();

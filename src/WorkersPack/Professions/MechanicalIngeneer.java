@@ -6,8 +6,8 @@ import WorkersPack.IngeneerWorker;
  * Created by OrangeUser on 3/28/2015.
  */
 public class MechanicalIngeneer extends IngeneerWorker {
-    public MechanicalIngeneer(String name, int age, int skill) {
-        super(name, age, skill);
+    public MechanicalIngeneer(String name, int age, int skill, boolean haveSheme) {
+        super(name, age, skill, haveSheme);
     }
 
     @Override

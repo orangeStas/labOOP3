@@ -8,9 +8,11 @@ import WorkersPack.OfficeWorker;
  */
 public class Booker extends OfficeWorker {
     private Telephone telephone;
-    public Booker(String name, int age, int skill) {
+    public int countClients;
+    public Booker(String name, int age, int skill, int countClients) {
         super(name, age, skill);
         telephone = new Telephone(this);
+        this.countClients =  countClients;
     }
 
     @Override

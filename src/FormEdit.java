@@ -94,26 +94,21 @@ public class FormEdit extends JFrame {
 
     public void editWorker(){
         try {
-            Object[] args = new Object[arrayOfFields.length];
             for (int i = 0 ; i < areasList.size(); i++){
                 String data = areasList.get(i).getText();
                 if (arrayOfFields[i].getType().getSimpleName().contains("int") || arrayOfFields[i].getType().getSimpleName().contains("Integer"))
                     arrayOfFields[i].setInt(workersList.getWorker(indexWorker), Integer.parseInt(data));
                 else if (arrayOfFields[i].getType().getSimpleName().contains("String"))
                     arrayOfFields[i].set(workersList.getWorker(indexWorker), data);
+                else if (arrayOfFields[i].getType().getSimpleName().contains("oolean"))
+                    arrayOfFields[i].setBoolean(workersList.getWorker(indexWorker), Boolean.valueOf(data));
                 else
                     continue;
             }
-            //workersList.insertWorker((Worker) workersList.getWorker(indexWorker).getClass().getDeclaredConstructors()[0].newInstance(args), indexWorker);
             main.comboBox.insertItemAt(workersList.getWorkersName()[indexWorker], indexWorker);
             main.comboBox.removeItemAt(indexWorker+1);
-            //main.comboBox.addItem(workersList.getWorkersName()[workersList.getWorkers().size() - 1]);
-//        } catch (InstantiationException e) {
-//            e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-//        } catch (InvocationTargetException e) {
-//            e.printStackTrace();
         }
     }
 }

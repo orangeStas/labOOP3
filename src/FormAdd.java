@@ -12,7 +12,6 @@ import java.util.ArrayList;
  * Created by OrangeUser on 3/30/2015.
  */
 public class FormAdd extends JFrame {
-
     public ArrayList<Class<?>> classesList;
     public WorkersList workersList;
     Class<?>[] typesOfArgs;
@@ -98,6 +97,8 @@ public class FormAdd extends JFrame {
                     args[i] = Integer.parseInt(data);
                 else if (typesOfArgs[i].getSimpleName().contains("String"))
                     args[i] = data;
+                else if (typesOfArgs[i].getSimpleName().contains("oolean"))
+                    args[i] = Boolean.valueOf(data);
             }
             workersList.addWorker((Worker) classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].newInstance(args));
             main.comboBox.addItem(workersList.getWorkersName()[workersList.getWorkers().size() - 1]);

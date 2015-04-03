@@ -10,8 +10,10 @@ import java.io.Serializable;
 public class Hammer implements Serializable {
     private int countKicks = 2000;
     private HardWorker owner;
+    private String hammerName;
 
-    public Hammer(HardWorker worker){
+    public Hammer(String hammerName ,HardWorker worker){
+        this.hammerName = hammerName;
         owner = worker;
     }
 

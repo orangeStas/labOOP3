@@ -8,9 +8,9 @@ import WorkersPack.Instruments.Hammer;
  */
 public class Builder extends HardWorker {
     private Hammer hammer;
-    public Builder(String name, int age, int skill) {
-        super(name, age, skill);
-        hammer = new Hammer(this);
+    public Builder(String name, int age, int skill, String hammerName) {
+        super(name, age, skill, hammerName);
+        hammer = new Hammer(hammerName, this);
     }
 
     @Override
