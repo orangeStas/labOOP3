@@ -4,8 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 /**
@@ -15,6 +15,7 @@ public class FormAdd extends JFrame {
     public ArrayList<Class<?>> classesList;
     public WorkersList workersList;
     Class<?>[] typesOfArgs;
+    public Method[] setMethods;
     Panel panel;
     ArrayList<TextArea> areasList;
 
@@ -57,14 +58,15 @@ public class FormAdd extends JFrame {
         panel.setLayout(new FlowLayout());
         JComboBox box = (JComboBox)e.getSource();
         typesOfArgs = classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].getParameterTypes();
+        setMethods = getSetMethods(classesList.get(box.getSelectedIndex()));
 
-        Field[] nameFields = getFieldsName(classesList.get(box.getSelectedIndex()));
+        //Field[] nameFields = getFieldsName(classesList.get(box.getSelectedIndex()));
 
         areasList = new ArrayList<TextArea>();
-        for (int i = 0 ; i < typesOfArgs.length; i++) {
-            TextArea textArea = new TextArea(typesOfArgs[i].getSimpleName());
+        for (int i = 0 ; i < setMethods.length; i++) {
+            TextArea textArea = new TextArea(setMethods[i].getGenericParameterTypes()[0].getTypeName());
             textArea.setPreferredSize(new Dimension(200, 100));
-            //panel.add(new Label(nameFields[i].getName()));
+            panel.add(new Label(setMethods[i].getName().replaceAll("set", "")));
             panel.add(textArea);
             areasList.add(textArea);
         }
@@ -75,38 +77,44 @@ public class FormAdd extends JFrame {
         pack();
     }
 
-    public Field[] getFieldsName(Class<?> choosenClass){
-        Field[] fields = new Field[choosenClass.getFields().length];// + choosenClass.getDeclaredFields().length];
-        Field[] tempFields = choosenClass.getFields();
-        Field[] tempDeclaredFields = choosenClass.getDeclaredFields();
-        for (int i = 0 ; i < tempFields.length ; i++) {
-            fields[i] = tempFields[i];
+    public Method[] getSetMethods(Class<?> choosenClass) {
+        ArrayList<Method> methodArrayList = new ArrayList<Method>();
+        for (Method method : choosenClass.getMethods()) {
+            if (method.getName().contains("set")) {
+                methodArrayList.add(method);
+            }
         }
-//        for (int i = tempFields.length, j = 0; i < fields.length; i++, j++){
-//            fields[i] = tempDeclaredFields[j];
-//        }
-        return fields;
+        Method[] methods = new Method[methodArrayList.size()];
+        for (int i = 0 ; i < methods.length; i++){
+            methods[i] = methodArrayList.get(i);
+        }
+        return methods;
     }
 
     public void addNewWorker(JComboBox box){
         try {
-            Object[] args = new Object[typesOfArgs.length];
+            Class<?> aClass = classesList.get(box.getSelectedIndex());
+            Worker worker = (Worker) aClass.getConstructor().newInstance();
             for (int i = 0 ; i < areasList.size(); i++){
                 String data = areasList.get(i).getText();
-                if (typesOfArgs[i].getSimpleName().contains("int") || typesOfArgs[i].getSimpleName().contains("Integer"))
-                    args[i] = Integer.parseInt(data);
-                else if (typesOfArgs[i].getSimpleName().contains("String"))
-                    args[i] = data;
-                else if (typesOfArgs[i].getSimpleName().contains("oolean"))
-                    args[i] = Boolean.valueOf(data);
+                if (setMethods[i].getGenericParameterTypes()[0].getTypeName().contains("int") || setMethods[i].getReturnType().getSimpleName().contains("Integer"))
+                    setMethods[i].invoke(worker, Integer.parseInt(data));
+                else if (setMethods[i].getGenericParameterTypes()[0].getTypeName().contains("String"))
+                    setMethods[i].invoke(worker, data);
+                else if (setMethods[i].getGenericParameterTypes()[0].getTypeName().contains("oolean"))
+                    setMethods[i].invoke(worker, Boolean.valueOf(data));
+                else
+                    continue;
             }
-            workersList.addWorker((Worker) classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].newInstance(args));
+            workersList.addWorker(worker);
             main.comboBox.addItem(workersList.getWorkersName()[workersList.getWorkers().size() - 1]);
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
     }

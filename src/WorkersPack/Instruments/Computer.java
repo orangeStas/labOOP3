@@ -9,14 +9,20 @@ import java.io.Serializable;
  */
 public class Computer implements Serializable {
     private IngeneerWorker owner;
+    private String name;
 
-    public Computer(IngeneerWorker worker){
+    public Computer(IngeneerWorker worker, String name){
         owner = worker;
+        this.name = name;
     }
 
-    public void getWork() throws InterruptedException {
-        System.out.println("Working on computer..");
-        Thread.sleep(200);
+    public String getName(){
+        return name;
     }
+
+    public void setName(String name){
+        this.name = name;
+    }
+
 
 }

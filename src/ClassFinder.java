@@ -1,4 +1,5 @@
 import java.io.File;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,9 @@ public class ClassFinder {
             int endIndex = resource.length() - CLASS_SUFFIX.length();
             String className = resource.substring(0, endIndex);
             try {
-                classes.add(Class.forName(className));
+                Class aClass = Class.forName(className);
+                if (!Modifier.isAbstract(aClass.getModifiers()))
+                    classes.add(Class.forName(className));
             } catch (ClassNotFoundException ignore) {
             }
         }

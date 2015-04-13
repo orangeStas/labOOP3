@@ -6,8 +6,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class main extends JFrame {
 
@@ -15,6 +17,7 @@ public class main extends JFrame {
     public static JComboBox comboBox;
     ButtonGroup buttonGroup;
     File file;
+    HashMap<String, Object> tableObjects = new HashMap<String, Object>();
 
     public main(){
         workersList = new WorkersList();
@@ -149,6 +152,7 @@ public class main extends JFrame {
         add(deserializeButton);
 
         setLayout(new FlowLayout());
+        //setLayout(new GridLayout(2, 4));
         pack();
     }
 
@@ -168,66 +172,168 @@ public class main extends JFrame {
     }
 
     public void serializeObjTextFile() throws IOException, ClassNotFoundException, IllegalAccessException {
-        PrintWriter writer = new PrintWriter(file);
-        Worker selectedWorker = workersList.getWorker(comboBox.getSelectedIndex());
-        writer.println(selectedWorker.getClass().getName());
-        for (Field field : workersList.getWorker(comboBox.getSelectedIndex()).getClass().getFields()){
-            writer.println(field.get(selectedWorker).toString());
-
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(file);
+            for (Worker worker : workersList.getWorkers()) {
+                writer.println(worker.getClass().getName());
+                for (Method method : getGetMethods(worker.getClass())) {
+                    if (!method.getReturnType().getTypeName().contains("String") || !method.getReturnType().getTypeName().contains("Integer")
+                        || !method.getReturnType().getTypeName().contains("int") || !method.getReturnType().getTypeName().contains("oolean"))
+                    {
+                        tableObjects.put(method.invoke(worker).toString(), method.invoke(worker));
+                        writer.println(method.invoke(worker).toString());
+                    }
+                    else
+                        writer.println(method.invoke(worker).toString());
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
         }
-        writer.close();
+        finally {
+            assert writer != null;
+            writer.close();
+        }
+    }
+
+    public Method[] getGetMethods(Class<?> choosenClass) {
+        ArrayList<Method> methodArrayList = new ArrayList<Method>();
+        for (Method method : choosenClass.getMethods()) {
+            if (method.getName().contains("get")) {
+                methodArrayList.add(method);
+            }
+        }
+        Method[] methods = new Method[methodArrayList.size() - 1];
+        for (int i = 0 ; i < methods.length; i++){
+            methods[i] = methodArrayList.get(i);
+        }
+        return methods;
     }
 
     public void deserializeObjTextFile() throws IOException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String className = reader.readLine();
-        Worker worker = (Worker) Class.forName(className).getDeclaredConstructors()[1].newInstance();
-        for (Field field : Class.forName(className).getFields()){
-            if (field.getType().getName().contains("String"))
-                field.set(worker, reader.readLine());
-            else if (field.getType().getName().contains("Integer") || field.getType().getName().contains("int")){
-                field.setInt(worker, Integer.parseInt(reader.readLine()));
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String className;
+            while ((className = reader.readLine()) != null) {
+                Worker worker = (Worker) Class.forName(className).getConstructor().newInstance();
+                for (Method method : getSetMethods(worker.getClass())) {
+                    if (method.getGenericParameterTypes()[0].getTypeName().contains("int") || method.getReturnType().getSimpleName().contains("Integer"))
+                        method.invoke(worker, Integer.parseInt(reader.readLine()));
+                    else if (method.getGenericParameterTypes()[0].getTypeName().contains("String"))
+                        method.invoke(worker, reader.readLine());
+                    else if (method.getGenericParameterTypes()[0].getTypeName().contains("oolean"))
+                        method.invoke(worker, Boolean.valueOf(reader.readLine()));
+                    else
+                        method.invoke(worker, tableObjects.get(reader.readLine()));
+                }
+                workersList.addWorker(worker);
+                comboBox.addItem(worker.getName());
             }
-            else if (field.getType().getName().contains("oolean"))
-                field.setBoolean(worker, Boolean.valueOf(reader.readLine()));
+        } catch (Exception e){
+            e.printStackTrace();
         }
-        workersList.addWorker(worker);
-        comboBox.addItem(workersList.getWorker(workersList.getWorkers().size()-1).getName());
+        finally {
+            assert reader != null;
+            reader.close();
+        }
+    }
+
+    public Method[] getSetMethods(Class<?> choosenClass) {
+        ArrayList<Method> methodArrayList = new ArrayList<Method>();
+        for (Method method : choosenClass.getMethods()) {
+            if (method.getName().contains("set")) {
+                methodArrayList.add(method);
+            }
+        }
+        Method[] methods = new Method[methodArrayList.size()];
+        for (int i = 0 ; i < methods.length; i++){
+            methods[i] = methodArrayList.get(i);
+        }
+        return methods;
     }
 
     public void serializeObjBINFile() throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        objectOutputStream.writeObject(workersList.getWorker(comboBox.getSelectedIndex()));
-        objectOutputStream.flush();
-        fileOutputStream.close();
-        objectOutputStream.close();
+        FileOutputStream fileOutputStream = null;
+        ObjectOutputStream objectOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(file);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            for (Worker worker : workersList.getWorkers()) {
+                objectOutputStream.writeObject(worker);
+            }
+            objectOutputStream.flush();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            assert fileOutputStream != null;
+            fileOutputStream.close();
+            assert objectOutputStream != null;
+            objectOutputStream.close();
+        }
     }
 
     public void deserializeObjBINFile() throws IOException, ClassNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-        workersList.addWorker((Worker) objectInputStream.readObject());
-        comboBox.addItem(workersList.getWorker(workersList.getWorkers().size()-1).getName());
-        fileInputStream.close();
-        objectInputStream.close();
+        FileInputStream fileInputStream = null;
+        ObjectInputStream objectInputStream = null;
+        Worker worker;
+        try {
+            fileInputStream = new FileInputStream(file);
+            objectInputStream = new ObjectInputStream(fileInputStream);
+            while ((worker = (Worker) objectInputStream.readObject()) != null) {
+                workersList.addWorker(worker);
+                comboBox.addItem(workersList.getWorker(workersList.getWorkers().size() - 1).getName());
+            }
+        } catch (EOFException e){
+
+        }
+        finally {
+            assert fileInputStream != null;
+            fileInputStream.close();
+            assert objectInputStream != null;
+            objectInputStream.close();
+        }
+
     }
 
     public void serializeObjXMLFile() throws IOException {
-
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        XStream xStream = new XStream();
-        xStream.toXML(workersList.getWorker(comboBox.getSelectedIndex()), fileOutputStream);
-        fileOutputStream.close();
+        FileOutputStream fileOutputStream = null;
+        XStream xStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(file);
+            xStream = new XStream();
+            xStream.toXML(workersList, fileOutputStream);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            assert fileOutputStream != null;
+            fileOutputStream.close();
+        }
 
     }
 
     public void deserializeObjXMLFile() throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        XStream xStream = new XStream();
-        workersList.addWorker((Worker) xStream.fromXML(fileInputStream));
-        comboBox.addItem(workersList.getWorker(workersList.getWorkers().size()-1).getName());
-        fileInputStream.close();
+        FileInputStream fileInputStream = null;
+        XStream xStream = null;
+        try {
+            fileInputStream = new FileInputStream(file);
+            xStream = new XStream();
+            WorkersList tempList = (WorkersList) xStream.fromXML(fileInputStream);
+            for (Worker worker : tempList.getWorkers()){
+                workersList.addWorker(worker);
+                comboBox.addItem(worker.getName());
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            assert fileInputStream != null;
+            fileInputStream.close();
+        }
+
     }
 
 

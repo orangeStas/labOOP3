@@ -17,23 +17,12 @@ public class Booker extends OfficeWorker {
 
     public Booker(){}
 
-    @Override
-    public int getSkill() {
-        return skill;
+    public int getCountClients(){
+        return countClients;
     }
 
-    @Override
-    public void setSkill() {
-        skill += 1;
+    public void setCountClients(int countClients){
+        this.countClients = countClients;
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public void getReport() {
-        telephone.getWork();
-    }
 }

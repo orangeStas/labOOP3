@@ -19,5 +19,8 @@
         <processorPath useClasspath="true" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="1.7">
+      <module name="labOOP3" target="1.7" />
+    </bytecodeTargetLevel>
   </component>
 </project>

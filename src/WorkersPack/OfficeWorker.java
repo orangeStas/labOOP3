@@ -12,5 +12,4 @@ public abstract class OfficeWorker extends Worker {
 
     }
 
-    public abstract void getReport();
 }

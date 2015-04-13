@@ -2,7 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 /**
@@ -13,7 +14,7 @@ public class FormEdit extends JFrame {
     private int indexWorker;
     ArrayList<TextArea> areasList;
     //Class<?>[] typesOfArgs;
-    Field[] arrayOfFields;
+    Method[] arrayOfGetMethods;
 
     public FormEdit(WorkersList workersList, int indexWorker){
         this.workersList = workersList;
@@ -39,75 +40,82 @@ public class FormEdit extends JFrame {
 
     public void generateFieldsAndAreas(){
         //typesOfArgs = workersList.getWorker(indexWorker).getClass().getDeclaredConstructors()[0].getParameterTypes();
-        arrayOfFields = getFields(workersList.getWorker(indexWorker).getClass());
-        Object[] valuesOfFields = getValuesOfFields(arrayOfFields);
+        arrayOfGetMethods = getGetMethods(workersList.getWorker(indexWorker).getClass());
+        Object[] valuesOfFields = getValuesOfFields(arrayOfGetMethods);
 
         areasList = new ArrayList<TextArea>();
-        for (int i = 0; i < arrayOfFields.length; i++){
+        for (int i = 0; i < arrayOfGetMethods.length; i++){
             TextArea textArea = new TextArea(valuesOfFields[i].toString());
             textArea.setPreferredSize(new Dimension(200, 100));
-            add(new Label(arrayOfFields[i].getName()));
+            add(new Label(arrayOfGetMethods[i].getName().replaceAll("get", "")));
             add(textArea);
             areasList.add(textArea);
         }
 
     }
 
-    public Field[] getFields(Class<?> choosenClass){
-        Field[] fields = new Field[choosenClass.getFields().length];// + choosenClass.getDeclaredFields().length];
-        Field[] tempFields = choosenClass.getFields();
-        Field[] tempDeclaredFields = choosenClass.getDeclaredFields();
-        for (int i = 0 ; i < tempFields.length ; i++) {
-            fields[i] = tempFields[i];
+    public Method[] getSetMethods(Class<?> choosenClass) {
+        ArrayList<Method> methodArrayList = new ArrayList<Method>();
+        for (Method method : choosenClass.getMethods()) {
+            if (method.getName().contains("set")) {
+                methodArrayList.add(method);
+            }
         }
-//        for (int i = tempFields.length, j = 0; i < fields.length; i++, j++){
-//            fields[i] = tempDeclaredFields[j];
-//        }
-        return fields;
+        Method[] methods = new Method[methodArrayList.size()];
+        for (int i = 0 ; i < methods.length; i++){
+            methods[i] = methodArrayList.get(i);
+        }
+        return methods;
     }
 
-    public Object[] getValuesOfFields(Field[] fields){
-        Object[] values = new Object[fields.length];
+    public Method[] getGetMethods(Class<?> choosenClass) {
+        ArrayList<Method> methodArrayList = new ArrayList<Method>();
+        for (Method method : choosenClass.getMethods()) {
+            if (method.getName().contains("get")) {
+                methodArrayList.add(method);
+            }
+        }
+        Method[] methods = new Method[methodArrayList.size() - 1];
+        for (int i = 0 ; i < methods.length; i++){
+            methods[i] = methodArrayList.get(i);
+        }
+        return methods;
+    }
 
-        for (int i = 0; i < fields.length ; i++){
-            if (fields[i].getType().getSimpleName().contains("int") || fields[i].getType().getSimpleName().contains("Integer"))
-                try {
-                    values[i] = fields[i].getInt(workersList.getWorker(indexWorker));
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            else if (fields[i].getType().getSimpleName().contains("String"))
-                try {
-                    values[i] = (String)fields[i].get(workersList.getWorker(indexWorker));
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            else
-                try {
-                    values[i] = fields[i].get(workersList.getWorker(indexWorker));
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
+    public Object[] getValuesOfFields(Method[] methods){
+        Object[] values = new Object[methods.length];
+
+        for (int i = 0; i < methods.length ; i++){
+            try {
+                values[i] = methods[i].invoke(workersList.getWorker(indexWorker));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
         return values;
     }
 
     public void editWorker(){
         try {
+            Method[] arrayOfSetMethods = getSetMethods(workersList.getWorker(indexWorker).getClass());
             for (int i = 0 ; i < areasList.size(); i++){
                 String data = areasList.get(i).getText();
-                if (arrayOfFields[i].getType().getSimpleName().contains("int") || arrayOfFields[i].getType().getSimpleName().contains("Integer"))
-                    arrayOfFields[i].setInt(workersList.getWorker(indexWorker), Integer.parseInt(data));
-                else if (arrayOfFields[i].getType().getSimpleName().contains("String"))
-                    arrayOfFields[i].set(workersList.getWorker(indexWorker), data);
-                else if (arrayOfFields[i].getType().getSimpleName().contains("oolean"))
-                    arrayOfFields[i].setBoolean(workersList.getWorker(indexWorker), Boolean.valueOf(data));
+                if (arrayOfGetMethods[i].getReturnType().getSimpleName().contains("int") || arrayOfGetMethods[i].getReturnType().getSimpleName().contains("Integer"))
+                    arrayOfSetMethods[i].invoke(workersList.getWorker(indexWorker), Integer.parseInt(data));
+                else if (arrayOfGetMethods[i].getReturnType().getSimpleName().contains("String"))
+                    arrayOfSetMethods[i].invoke(workersList.getWorker(indexWorker), data);
+                else if (arrayOfGetMethods[i].getReturnType().getSimpleName().contains("oolean"))
+                    arrayOfSetMethods[i].invoke(workersList.getWorker(indexWorker), Boolean.valueOf(data));
                 else
                     continue;
             }
             main.comboBox.insertItemAt(workersList.getWorkersName()[indexWorker], indexWorker);
             main.comboBox.removeItemAt(indexWorker+1);
         } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
     }

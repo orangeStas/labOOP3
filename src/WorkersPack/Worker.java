@@ -6,9 +6,9 @@ import java.io.Serializable;
  * Created by OrangeUser on 3/28/2015.
  */
 public abstract class Worker implements Serializable {
-    public String name;
-    public int age;
-    public int skill;
+    private String name;
+    private int age;
+    private int skill;
 
     public Worker(String name, int age, int skill){
         this.name = name;
@@ -21,11 +21,28 @@ public abstract class Worker implements Serializable {
     }
 
 
-    public abstract int getSkill();
+    public String getName(){
+        return name;
+    }
 
-    public abstract void setSkill();
+    public int getAge(){
+        return age;
+    }
 
-    public abstract String getName();
+    public int getSkill(){
+        return skill;
+    }
 
+    public void setName(String name){
+        this.name = name;
+    }
+
+    public void setAge(int age){
+        this.age = age;
+    }
+
+    public void setSkill(int skill){
+        this.skill = skill;
+    }
 
 }

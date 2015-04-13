@@ -20,7 +20,10 @@ public class Hammer implements Serializable {
     public void getWork(){
         if (isHammerCanWork())
             countKicks -= 50;
+    }
 
+    public void setHammerName(String hammerName){
+        this.hammerName = hammerName;
     }
 
     public boolean isHammerCanWork(){
