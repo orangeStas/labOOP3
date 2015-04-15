@@ -275,14 +275,26 @@ public class main extends JFrame {
         }
     }
 
-    public ArrayList<Method> getSetMethods(Class<?> choosenClass) {
+    public Method[] getSetMethods(Class<?> choosenClass) {
         ArrayList<Method> methodArrayList = new ArrayList<Method>();
         for (Method method : choosenClass.getMethods()) {
             if (method.getName().startsWith("set") && method.getParameters().length == 1) {
                 methodArrayList.add(method);
             }
         }
-        return  methodArrayList;
+
+        Method[] methods = new Method[methodArrayList.size()];
+        for (int i = 0 ; i < methods.length; i++) {
+            for (int j = 0; j < methods.length - 1; j++) {
+                if (methods[j].getName().compareTo(methods[j+1].getName()) < 0)
+                {
+                    Method tempMethod = methods[j];
+                    methods[j] = methods[j+1];
+                    methods[j+1] = tempMethod;
+                }
+            }
+        }
+        return methods;
     }
 
     public void serializeObjBINFile() throws IOException {

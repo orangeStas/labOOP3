@@ -65,6 +65,9 @@ public class FormEdit extends JFrame {
         for (int i = 0 ; i < methods.length; i++){
             methods[i] = methodArrayList.get(i);
         }
+
+        methods = sortMethodArray(methods);
+
         return methods;
     }
 
@@ -78,6 +81,22 @@ public class FormEdit extends JFrame {
         Method[] methods = new Method[methodArrayList.size() - 1];
         for (int i = 0 ; i < methods.length; i++){
             methods[i] = methodArrayList.get(i);
+        }
+
+        methods = sortMethodArray(methods);
+        return methods;
+    }
+
+    public Method[] sortMethodArray(Method[] methods) {
+        for (int i = 0 ; i < methods.length; i++) {
+            for (int j = 0; j < methods.length - 1; j++) {
+                if (methods[j].getName().compareTo(methods[j+1].getName()) < 0)
+                {
+                    Method tempMethod = methods[j];
+                    methods[j] = methods[j+1];
+                    methods[j+1] = tempMethod;
+                }
+            }
         }
         return methods;
     }

@@ -88,7 +88,7 @@ public class FormAdd extends JFrame {
             methods[i] = methodArrayList.get(i);
         }
         */
-        return methodArrayList.toArray(new Method[0]);
+        return sortMethodArray(methodArrayList.toArray(new Method[0]));
     }
 
     public void addNewWorker(JComboBox box){
@@ -111,6 +111,20 @@ public class FormAdd extends JFrame {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
+    }
+
+    public Method[] sortMethodArray(Method[] methods) {
+        for (int i = 0 ; i < methods.length; i++) {
+            for (int j = 0; j < methods.length - 1; j++) {
+                if (methods[j].getName().compareTo(methods[j+1].getName()) < 0)
+                {
+                    Method tempMethod = methods[j];
+                    methods[j] = methods[j+1];
+                    methods[j+1] = tempMethod;
+                }
+            }
+        }
+        return methods;
     }
 
     public String[] getArrayProfessions(){
