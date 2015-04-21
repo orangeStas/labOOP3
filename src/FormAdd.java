@@ -60,10 +60,9 @@ public class FormAdd extends JFrame {
         typesOfArgs = classesList.get(box.getSelectedIndex()).getDeclaredConstructors()[0].getParameterTypes();
         setMethods = getSetMethods(classesList.get(box.getSelectedIndex()));
 
-        //Field[] nameFields = getFieldsName(classesList.get(box.getSelectedIndex()));
-
         areasList = new ArrayList<TextArea>();
         for (int i = 0 ; i < setMethods.length; i++) {
+
             TextArea textArea = new TextArea(setMethods[i].getGenericParameterTypes()[0].getTypeName());
             textArea.setPreferredSize(new Dimension(200, 100));
             panel.add(new Label(setMethods[i].getName().replaceAll("set", "")));
@@ -84,11 +83,12 @@ public class FormAdd extends JFrame {
                 methodArrayList.add(method);
             }
         }
-        Method[] methods = new Method[methodArrayList.size()];
+        /*Method[] methods = new Method[methodArrayList.size()];
         for (int i = 0 ; i < methods.length; i++){
             methods[i] = methodArrayList.get(i);
         }
-        return methods;
+        */
+        return methodArrayList.toArray(new Method[0]);
     }
 
     public void addNewWorker(JComboBox box){
@@ -108,13 +108,7 @@ public class FormAdd extends JFrame {
             }
             workersList.addWorker(worker);
             main.comboBox.addItem(workersList.getWorkersName()[workersList.getWorkers().size() - 1]);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }

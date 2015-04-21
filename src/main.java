@@ -2,6 +2,7 @@ import WorkersPack.Worker;
 import com.thoughtworks.xstream.XStream;
 
 import javax.swing.*;
+import javax.xml.transform.TransformerException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,21 +11,27 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class main extends JFrame {
 
     public static WorkersList workersList;
     public static JComboBox comboBox;
+    public JComboBox stylesBox;
     ButtonGroup buttonGroup;
     File file;
     HashMap<String, Object> tableObjects = new HashMap<String, Object>();
+    public File[] filesArray;
+    JRadioButton formatXMLButt;
+    public static HashMap<String, String> tableStyles;
 
-    public main(){
+
+    public main() throws IOException {
         workersList = new WorkersList();
         iniGUI();
     }
 
-    public void iniGUI(){
+    public void iniGUI() throws IOException {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -35,10 +42,6 @@ public class main extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JComboBox box = (JComboBox)e.getSource();
-                String item = (String)box.getSelectedItem();
-                int index = box.getSelectedIndex();
-                //System.out.println(item + " - " + index);
-                //System.out.println(workersList.getWorker(index).toString());
             }
         });
         add(comboBox);
@@ -48,6 +51,12 @@ public class main extends JFrame {
         Button removeButton = new Button("Remove");
 
         Button chooseFileButt = new Button("Open File");
+
+        formatXMLButt = new JRadioButton("Formatting XML");
+        tableStyles = getTableStyles();
+        filesArray = getFilesArray();
+        stylesBox = new JComboBox(getFilesName());
+
 
         buttonGroup = new ButtonGroup();
 
@@ -60,8 +69,6 @@ public class main extends JFrame {
 
         Button serializeButton = new Button("Serialize object");
         final Button deserializeButton = new Button("Deserialize object");
-
-
 
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -101,11 +108,7 @@ public class main extends JFrame {
                         serializeObjBINFile();
                     else if (textFileButt.isSelected())
                         serializeObjTextFile();
-                } catch (IOException e1){
-                    e1.printStackTrace();
-                } catch (ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                } catch (IllegalAccessException e1) {
+                } catch (IOException | ClassNotFoundException | IllegalAccessException e1) {
                     e1.printStackTrace();
                 }
 
@@ -122,15 +125,7 @@ public class main extends JFrame {
                         deserializeObjBINFile();
                     else if (textFileButt.isSelected())
                         deserializeObjTextFile();
-                } catch (IOException e1){
-                    e1.printStackTrace();
-                } catch (ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                } catch (InvocationTargetException e1) {
-                    e1.printStackTrace();
-                } catch (InstantiationException e1) {
-                    e1.printStackTrace();
-                } catch (IllegalAccessException e1) {
+                } catch (IOException | ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException | TransformerException e1){
                     e1.printStackTrace();
                 }
             }
@@ -144,6 +139,9 @@ public class main extends JFrame {
 
         add(chooseFileButt);
 
+        add(formatXMLButt);
+        add(stylesBox);
+
         add(textFileButt);
         add(xmlFileButt);
         add(binFileButt);
@@ -152,9 +150,49 @@ public class main extends JFrame {
         add(deserializeButton);
 
         setLayout(new FlowLayout());
-        //setLayout(new GridLayout(2, 4));
         pack();
     }
+
+    public HashMap<String, String> getTableStyles() throws IOException {
+        HashMap<String, String> map = new HashMap<>();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(System.getProperty("user.dir") + "\\Table styles.txt")));
+        String line = "";
+        while ((line = reader.readLine()) != null){
+            try {
+                map.put(line.split("\\-")[0], line.split("\\-")[1]);
+            } catch (Exception e){
+                System.out.println("Таблица не получена");
+                return null;
+            }
+
+        }
+        reader.close();
+        return map;
+    }
+
+    public File[] getFilesArray(){
+        File folder = new File(System.getProperty("user.dir") + "\\FormattingStyles");
+        File[] files = folder.listFiles();
+        return files;
+    }
+
+    public String[] getFilesName(){
+        String[] fileNamesArray;
+        if (tableStyles == null)
+            return new String[0];
+        fileNamesArray = new String[tableStyles.size()];
+        int count = 0;
+        for (int i = 0 ; i < filesArray.length; i++){
+            for (Map.Entry entry : tableStyles.entrySet()){
+                if (entry.getKey().toString().equals(filesArray[i].getName())) {
+                    fileNamesArray[count] = filesArray[i].getName();
+                    count++;
+                }
+            }
+        }
+        return fileNamesArray;
+    }
+
 
     public void removeWorker(){
         int index = comboBox.getSelectedIndex();
@@ -197,18 +235,15 @@ public class main extends JFrame {
         }
     }
 
-    public Method[] getGetMethods(Class<?> choosenClass) {
+    public ArrayList<Method> getGetMethods(Class<?> choosenClass) {
         ArrayList<Method> methodArrayList = new ArrayList<Method>();
         for (Method method : choosenClass.getMethods()) {
             if (method.getName().contains("get")) {
                 methodArrayList.add(method);
             }
         }
-        Method[] methods = new Method[methodArrayList.size() - 1];
-        for (int i = 0 ; i < methods.length; i++){
-            methods[i] = methodArrayList.get(i);
-        }
-        return methods;
+
+        return methodArrayList;
     }
 
     public void deserializeObjTextFile() throws IOException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -240,18 +275,14 @@ public class main extends JFrame {
         }
     }
 
-    public Method[] getSetMethods(Class<?> choosenClass) {
+    public ArrayList<Method> getSetMethods(Class<?> choosenClass) {
         ArrayList<Method> methodArrayList = new ArrayList<Method>();
         for (Method method : choosenClass.getMethods()) {
-            if (method.getName().contains("set")) {
+            if (method.getName().startsWith("set") && method.getParameters().length == 1) {
                 methodArrayList.add(method);
             }
         }
-        Method[] methods = new Method[methodArrayList.size()];
-        for (int i = 0 ; i < methods.length; i++){
-            methods[i] = methodArrayList.get(i);
-        }
-        return methods;
+        return  methodArrayList;
     }
 
     public void serializeObjBINFile() throws IOException {
@@ -311,39 +342,58 @@ public class main extends JFrame {
         finally {
             assert fileOutputStream != null;
             fileOutputStream.close();
+            if (formatXMLButt.isSelected())
+                try {
+                    //formatXML(file);
+                    Formatter formatter = new Formatter(file, stylesBox.getItemAt(stylesBox.getSelectedIndex()).toString(), filesArray);
+                    formatter.formatXML();
+                } catch (TransformerException e) {
+                    e.printStackTrace();
+                }
         }
 
     }
 
-    public void deserializeObjXMLFile() throws IOException {
+    public void deserializeObjXMLFile() throws IOException, TransformerException {
         FileInputStream fileInputStream = null;
         XStream xStream = null;
-        try {
-            fileInputStream = new FileInputStream(file);
-            xStream = new XStream();
-            WorkersList tempList = (WorkersList) xStream.fromXML(fileInputStream);
-            for (Worker worker : tempList.getWorkers()){
-                workersList.addWorker(worker);
-                comboBox.addItem(worker.getName());
+        WorkersList tempList = null;
+        xStream = new XStream();
+        if (formatXMLButt.isSelected()){
+            Formatter formatter = new Formatter(file, filesArray);
+            tempList = (WorkersList) xStream.fromXML(formatter.getDeformatXML());
+        }
+        else {
+            try {
+                fileInputStream = new FileInputStream(file);
+                tempList = (WorkersList) xStream.fromXML(fileInputStream);
+            } catch (Exception e){
+                e.printStackTrace();
             }
-        } catch (Exception e){
-            e.printStackTrace();
+            finally {
+                assert fileInputStream != null;
+                fileInputStream.close();
+            }
         }
-        finally {
-            assert fileInputStream != null;
-            fileInputStream.close();
+        assert tempList != null;
+        for (Worker worker : tempList.getWorkers()) {
+            workersList.addWorker(worker);
+            comboBox.addItem(worker.getName());
         }
-
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override
             public void run() {
-                new main().setVisible(true);
+                try {
+                    new main().setVisible(true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
+
     }
 }
