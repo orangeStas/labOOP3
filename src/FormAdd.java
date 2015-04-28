@@ -107,6 +107,7 @@ public class FormAdd extends JFrame {
                     continue;
             }
             workersList.addWorker(worker);
+
             main.comboBox.addItem(workersList.getWorkersName()[workersList.getWorkers().size() - 1]);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();

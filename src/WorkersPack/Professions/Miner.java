@@ -20,6 +20,11 @@ public class Miner extends HardWorker {
 
     }
 
+    @Override
+    public void work() {
+        System.out.println(this.getName() + " is working under ground");
+    }
+
     public boolean getHaveFlashlight(){
         return haveFlashlight;
     }

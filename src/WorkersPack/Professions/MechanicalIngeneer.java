@@ -12,4 +12,9 @@ public class MechanicalIngeneer extends IngeneerWorker {
 
     public MechanicalIngeneer(){}
 
+    @Override
+    public void work() {
+        System.out.println(this.getName() + " is drawing a new scheme");
+    }
+
 }

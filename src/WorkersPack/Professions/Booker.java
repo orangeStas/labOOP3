@@ -15,7 +15,13 @@ public class Booker extends OfficeWorker {
         this.countClients =  countClients;
     }
 
-    public Booker(){}
+    public Booker(){
+    }
+
+    @Override
+    public void work() {
+        System.out.println(this.getName() + " is working with client");
+    }
 
     public int getCountClients(){
         return countClients;

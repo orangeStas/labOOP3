@@ -9,7 +9,7 @@
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="@*">
+    <xsl:template match="@*[name() != 'class' and name() != 'reference']">
         <xsl:element name="{name()}"><xsl:value-of select="."/></xsl:element>
     </xsl:template>
 </xsl:stylesheet>

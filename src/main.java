@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class main extends JFrame {
 
-    public static WorkersList workersList;
+    public WorkersList workersList;
     public static JComboBox comboBox;
     public JComboBox stylesBox;
     ButtonGroup buttonGroup;
@@ -23,17 +23,19 @@ public class main extends JFrame {
     HashMap<String, Object> tableObjects = new HashMap<String, Object>();
     public File[] filesArray;
     JRadioButton formatXMLButt;
+    JRadioButton archiveXMLButt;
     public static HashMap<String, String> tableStyles;
 
 
     public main() throws IOException {
-        workersList = new WorkersList();
+        workersList = WorkersList.getInstance();
         iniGUI();
     }
 
     public void iniGUI() throws IOException {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
 
 
         comboBox = new JComboBox(workersList.getWorkersName());
@@ -56,6 +58,8 @@ public class main extends JFrame {
         tableStyles = getTableStyles();
         filesArray = getFilesArray();
         stylesBox = new JComboBox(getFilesName());
+
+        archiveXMLButt = new JRadioButton("Archiving XML");
 
 
         buttonGroup = new ButtonGroup();
@@ -108,7 +112,7 @@ public class main extends JFrame {
                         serializeObjBINFile();
                     else if (textFileButt.isSelected())
                         serializeObjTextFile();
-                } catch (IOException | ClassNotFoundException | IllegalAccessException e1) {
+                } catch (IOException | ClassNotFoundException | IllegalAccessException | TransformerException e1) {
                     e1.printStackTrace();
                 }
 
@@ -141,6 +145,8 @@ public class main extends JFrame {
 
         add(formatXMLButt);
         add(stylesBox);
+
+        add(archiveXMLButt);
 
         add(textFileButt);
         add(xmlFileButt);
@@ -333,15 +339,15 @@ public class main extends JFrame {
 
         }
         finally {
-            assert fileInputStream != null;
-            fileInputStream.close();
-            assert objectInputStream != null;
-            objectInputStream.close();
+            if (fileInputStream != null)
+                fileInputStream.close();
+            if (objectInputStream != null)
+                objectInputStream.close();
         }
 
     }
 
-    public void serializeObjXMLFile() throws IOException {
+    public void serializeObjXMLFile() throws IOException, TransformerException {
         FileOutputStream fileOutputStream = null;
         XStream xStream = null;
         try {
@@ -357,11 +363,15 @@ public class main extends JFrame {
             if (formatXMLButt.isSelected())
                 try {
                     //formatXML(file);
-                    Formatter formatter = new Formatter(file, stylesBox.getItemAt(stylesBox.getSelectedIndex()).toString(), filesArray);
+                    XSLFormatter formatter = new XSLFormatter(file, stylesBox.getItemAt(stylesBox.getSelectedIndex()).toString(), filesArray);
                     formatter.formatXML();
                 } catch (TransformerException e) {
                     e.printStackTrace();
                 }
+            if (archiveXMLButt.isSelected()){
+                ArchiverAdapter archiverAdapter = new ArchiverAdapter(file);
+                archiverAdapter.formatXML();
+            }
         }
 
     }
@@ -372,8 +382,12 @@ public class main extends JFrame {
         WorkersList tempList = null;
         xStream = new XStream();
         if (formatXMLButt.isSelected()){
-            Formatter formatter = new Formatter(file, filesArray);
-            tempList = (WorkersList) xStream.fromXML(formatter.getDeformatXML());
+            XSLFormatter formatter = new XSLFormatter(file, filesArray);
+            tempList = (WorkersList) xStream.fromXML(formatter.deformatXML());
+        }
+        else if (archiveXMLButt.isSelected()) {
+            ArchiverAdapter archiverAdapter = new ArchiverAdapter(file);
+            tempList = (WorkersList) xStream.fromXML(archiverAdapter.deformatXML());
         }
         else {
             try {
@@ -383,8 +397,8 @@ public class main extends JFrame {
                 e.printStackTrace();
             }
             finally {
-                assert fileInputStream != null;
-                fileInputStream.close();
+                if (fileInputStream != null)
+                    fileInputStream.close();
             }
         }
         assert tempList != null;

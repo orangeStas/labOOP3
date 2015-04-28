@@ -1,13 +1,25 @@
+import WorkersPack.GoWork;
+import WorkersPack.Order;
 import WorkersPack.Worker;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class WorkersList {
-    public List<Worker> workers;
 
-    public WorkersList(){
+
+    private static WorkersList instance;
+
+    private List<Worker> workers;
+
+    private WorkersList(){
         workers = new ArrayList<Worker>();
+    }
+
+    public static WorkersList getInstance() {
+        if (instance == null)
+            instance = new WorkersList();
+        return instance;
     }
 
     public List<Worker> getWorkers(){
@@ -24,6 +36,10 @@ public class WorkersList {
 
     public void addWorker(Worker worker){
         workers.add(worker);
+
+        GoWork workCommand = new GoWork(worker);
+        Order order = new Order(workCommand);
+        order.doOrder();
     }
 
     public void insertWorker(Worker worker, int index){

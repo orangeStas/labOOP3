@@ -14,4 +14,9 @@ public class Builder extends HardWorker {
 
     public Builder(){}
 
+    @Override
+    public void work() {
+        System.out.println(this.getName() + " is building a house");
+    }
+
 }

@@ -14,7 +14,7 @@ import java.nio.charset.Charset;
 /**
  * Created by OrangeUser on 4/21/2015.
  */
-public class Formatter {
+public class XSLFormatter implements IFormatter {
 
     private File file;
     private File[] fileStylesArray;
@@ -22,14 +22,14 @@ public class Formatter {
     private String choosenStyle;
     private boolean deformatFlag = false;
 
-    public Formatter(File file, String choosenStyle, File[] fileStylesArray) throws TransformerConfigurationException, IOException {
+    public XSLFormatter(File file, String choosenStyle, File[] fileStylesArray) throws TransformerConfigurationException, IOException {
         this.file = file;
         this.choosenStyle = choosenStyle;
         this.fileStylesArray = fileStylesArray;
         setupTransformer();
     }
 
-    public Formatter(File file, File[] fileStylesArray) throws TransformerConfigurationException, IOException {
+    public XSLFormatter(File file, File[] fileStylesArray) throws TransformerConfigurationException, IOException {
         this.file = file;
         this.fileStylesArray = fileStylesArray;
         deformatFlag = true;
@@ -48,10 +48,13 @@ public class Formatter {
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
     }
 
-    private File getStyleFile() throws IOException {
+    public File getStyleFile() throws IOException {
         if (deformatFlag){
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName("UTF-16")));
-            choosenStyle = reader.readLine();
+            String currentLine = "";
+            while ((currentLine = reader.readLine()) != null)
+                choosenStyle = currentLine;
+            choosenStyle = choosenStyle.replaceAll("(<!--|-->)", "");
             reader.close();
         }
         for (File file1 : fileStylesArray){
@@ -61,6 +64,7 @@ public class Formatter {
         return null;
     }
 
+    @Override
     public void formatXML() throws TransformerException {
         StringWriter outWriter = new StringWriter();
 
@@ -72,19 +76,22 @@ public class Formatter {
         StringBuffer buffer = outWriter.getBuffer();
         String result = prettyPrint(buffer.toString());
 
-        PrintWriter writer = null;
 
+        PrintWriter writer = null;
         try {
             writer = new PrintWriter(file, "UTF-16");
-            writer.println(main.tableStyles.get(choosenStyle));
             writer.println(result);
-            writer.close();
+            writer.println("<!--" + main.tableStyles.get(choosenStyle) + "-->");
+
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
             e.printStackTrace();
+        } finally {
+            if (writer != null)
+                writer.close();
         }
     }
 
-    private String prettyPrint(String xmlString) {
+    public String prettyPrint(String xmlString) {
         try {
             final InputSource src = new InputSource(new StringReader(xmlString));
             final Node document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(src).getDocumentElement();
@@ -106,7 +113,8 @@ public class Formatter {
         }
     }
 
-    public String getDeformatXML() throws TransformerException, IOException {
+    @Override
+    public String deformatXML() throws TransformerException, IOException {
         StringWriter outWriter = new StringWriter();
         StringReader xmlString = new StringReader(getXMLWithoutStyle(file, choosenStyle));
 

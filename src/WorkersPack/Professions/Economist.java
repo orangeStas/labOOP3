@@ -12,5 +12,10 @@ public class Economist extends OfficeWorker {
 
     public Economist(){}
 
+    @Override
+    public void work() {
+        System.out.println(this.getName() + " is doing a calculations");
+    }
+
 
 }

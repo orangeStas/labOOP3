@@ -17,6 +17,11 @@ public class Programmer extends IngeneerWorker {
 
     public Programmer(){}
 
+    @Override
+    public void work() {
+        System.out.println(this.getName() + " is writing code");
+    }
+
 
     public String getLanguage(){
         return language;

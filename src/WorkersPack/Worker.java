@@ -45,4 +45,6 @@ public abstract class Worker implements Serializable {
         this.skill = skill;
     }
 
+    public abstract void work();
+
 }
