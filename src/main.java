@@ -22,7 +22,7 @@ public class main extends JFrame {
     File file;
     HashMap<String, Object> tableObjects = new HashMap<String, Object>();
     public File[] filesArray;
-    JRadioButton formatXMLButt;
+    public static JRadioButton formatXMLButt;
     JRadioButton archiveXMLButt;
     public static HashMap<String, String> tableStyles;
 
@@ -35,8 +35,6 @@ public class main extends JFrame {
     public void iniGUI() throws IOException {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-
 
         comboBox = new JComboBox(workersList.getWorkersName());
 
@@ -156,6 +154,15 @@ public class main extends JFrame {
         add(deserializeButton);
 
         setLayout(new FlowLayout());
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int sizeWidth = 1000;
+        int sizeHeight = 100;
+        int locationX = (screenSize.width - sizeWidth) / 2;
+        int locationY = (screenSize.height - sizeHeight) / 2;
+        setBounds(locationX, locationY, sizeWidth, sizeHeight);
+
+
         pack();
     }
 
@@ -289,7 +296,7 @@ public class main extends JFrame {
             }
         }
 
-        Method[] methods = new Method[methodArrayList.size()];
+        Method[] methods = methodArrayList.toArray(new Method[0]);
         for (int i = 0 ; i < methods.length; i++) {
             for (int j = 0; j < methods.length - 1; j++) {
                 if (methods[j].getName().compareTo(methods[j+1].getName()) < 0)
@@ -369,8 +376,10 @@ public class main extends JFrame {
                     e.printStackTrace();
                 }
             if (archiveXMLButt.isSelected()){
-                ArchiverAdapter archiverAdapter = new ArchiverAdapter(file);
+                Archiver archiver = new Archiver(file);
+                IFormatter archiverAdapter = new ArchiverAdapter(archiver);
                 archiverAdapter.formatXML();
+                file.delete();
             }
         }
 
@@ -381,13 +390,30 @@ public class main extends JFrame {
         XStream xStream = null;
         WorkersList tempList = null;
         xStream = new XStream();
-        if (formatXMLButt.isSelected()){
+        if (formatXMLButt.isSelected() && !file.getName().endsWith(".zip")){
             XSLFormatter formatter = new XSLFormatter(file, filesArray);
             tempList = (WorkersList) xStream.fromXML(formatter.deformatXML());
         }
-        else if (archiveXMLButt.isSelected()) {
-            ArchiverAdapter archiverAdapter = new ArchiverAdapter(file);
-            tempList = (WorkersList) xStream.fromXML(archiverAdapter.deformatXML());
+        else if (file.getName().endsWith(".zip")) {
+            Archiver archiver = new Archiver(file);
+            IFormatter archiverAdapter = new ArchiverAdapter(archiver);
+            if (!formatXMLButt.isSelected())
+                tempList = (WorkersList) xStream.fromXML(archiverAdapter.deformatXML());
+            else {
+                File newFile = new File(System.getProperty("user.dir") + "\\" + file.getName().replaceAll("zip", "xml"));
+
+                String xmlString = archiverAdapter.deformatXML();
+
+                PrintWriter writer = new PrintWriter(newFile, "UTF-16");
+                //PrintWriter writer = new PrintWriter(newFile);
+                writer.write(xmlString);
+                writer.close();
+
+                XSLFormatter formatter = new XSLFormatter(newFile, filesArray);
+                tempList = (WorkersList) xStream.fromXML(formatter.deformatXML());
+                newFile.delete();
+            }
+
         }
         else {
             try {

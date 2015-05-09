@@ -1,5 +1,4 @@
 import javax.xml.transform.TransformerException;
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -8,16 +7,15 @@ import java.io.IOException;
 public class ArchiverAdapter implements IFormatter {
 
     Archiver archiver;
-    private File file;
 
-    public ArchiverAdapter(File file) {
-        this.file = file;
+    public ArchiverAdapter(Archiver archiver) {
+        this.archiver = archiver;
     }
 
     @Override
     public void formatXML() throws TransformerException {
         try {
-            archiver.zipFile(file);
+            archiver.zipFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -25,6 +23,7 @@ public class ArchiverAdapter implements IFormatter {
 
     @Override
     public String deformatXML() throws TransformerException, IOException {
-        return archiver.unzipFile(file);
+        return archiver.unzipFile();
     }
+
 }

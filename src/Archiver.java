@@ -1,4 +1,8 @@
+import org.mozilla.universalchardet.UniversalDetector;
+
+import javax.swing.*;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -8,18 +12,30 @@ import java.util.zip.ZipOutputStream;
  */
 public class Archiver {
 
-    String zipFilePath = System.getProperty("user.dir") + "\\archive.zip";
+    private File zipFile;
+    private File file;
 
-    public void zipFile(File file) throws IOException {
+    public Archiver(File file){
+        this.file = file;
+    }
+
+    public void zipFile() throws IOException {
         FileOutputStream fileOutputStream = null;
         ZipOutputStream zipOutputStream = null;
         FileInputStream fileInputStream = null;
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        int ret = fileChooser.showDialog(null, "Choose file");
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            zipFile = fileChooser.getSelectedFile();
+        }
 
         try {
 
             byte[] buffer = new byte[1024];
 
-            fileOutputStream = new FileOutputStream(new File(zipFilePath));
+            fileOutputStream = new FileOutputStream(zipFile);
             zipOutputStream = new ZipOutputStream(fileOutputStream);
 
             fileInputStream = new FileInputStream(file);
@@ -45,7 +61,7 @@ public class Archiver {
         }
     }
 
-    public String unzipFile(File file) throws IOException {
+    public String unzipFile() throws IOException {
         ZipInputStream zipInputStream = null;
         FileInputStream fileInputStream = null;
         String result = "";
@@ -53,16 +69,28 @@ public class Archiver {
             fileInputStream = new FileInputStream(file);
             zipInputStream = new ZipInputStream(fileInputStream);
             ZipEntry zipEntry;
+            BufferedReader reader = null;
+
+            String charSet = getEncoding(zipInputStream);
+
+            fileInputStream = new FileInputStream(file);
+            zipInputStream = new ZipInputStream(fileInputStream);
 
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream));
+                if (charSet == null)
+                    reader = new BufferedReader(new InputStreamReader(zipInputStream));
+                else
+                    reader = new BufferedReader(new InputStreamReader(zipInputStream, Charset.forName("UTF-16")));
                 String line;
+
+
                 while ((line = reader.readLine()) != null){
-                    result += line;
+                    result += line + System.getProperty("line.separator");
                 }
-                reader.close();
             }
 
+            if (reader != null)
+                reader.close();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -76,6 +104,35 @@ public class Archiver {
 
         return result;
 
+    }
+
+    public String getEncoding(ZipInputStream zipInputStream) throws IOException {
+        byte[] buf = new byte[4096];
+
+        UniversalDetector detector = new UniversalDetector(null);
+
+        ZipEntry zipEntry;
+        BufferedReader reader = null;
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+
+            reader = new BufferedReader(new InputStreamReader(zipInputStream));
+
+            int nread;
+            while ((nread = zipInputStream.read(buf)) > 0 && !detector.isDone()) {
+                detector.handleData(buf, 0, nread);
+            }
+        }
+
+        detector.dataEnd();
+        String encoding = detector.getDetectedCharset();
+
+        detector.reset();
+
+        if (reader != null)
+            reader.close();
+        zipInputStream.close();
+
+        return encoding;
     }
 
 }
