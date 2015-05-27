@@ -16,9 +16,14 @@ public class WorkersList {
         workers = new ArrayList<Worker>();
     }
 
+    static{
+        instance = new WorkersList();
+    }
+
+
     public static WorkersList getInstance() {
-        if (instance == null)
-            instance = new WorkersList();
+        //if (instance == null)
+
         return instance;
     }
 

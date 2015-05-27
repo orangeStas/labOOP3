@@ -248,15 +248,30 @@ public class main extends JFrame {
         }
     }
 
-    public ArrayList<Method> getGetMethods(Class<?> choosenClass) {
+    public Method[] getGetMethods(Class<?> choosenClass) {
         ArrayList<Method> methodArrayList = new ArrayList<Method>();
         for (Method method : choosenClass.getMethods()) {
             if (method.getName().contains("get")) {
-                methodArrayList.add(method);
+                if (!method.getName().startsWith("getClass"))
+                    methodArrayList.add(method);
             }
         }
 
-        return methodArrayList;
+        return sortMethods(methodArrayList.toArray(new Method[0]));
+    }
+
+    public Method[] sortMethods(Method[] methods) {
+        for (int i = 0 ; i < methods.length; i++) {
+            for (int j = 0; j < methods.length - 1; j++) {
+                if (methods[j].getName().compareTo(methods[j+1].getName()) < 0)
+                {
+                    Method tempMethod = methods[j];
+                    methods[j] = methods[j+1];
+                    methods[j+1] = tempMethod;
+                }
+            }
+        }
+        return methods;
     }
 
     public void deserializeObjTextFile() throws IOException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -296,18 +311,7 @@ public class main extends JFrame {
             }
         }
 
-        Method[] methods = methodArrayList.toArray(new Method[0]);
-        for (int i = 0 ; i < methods.length; i++) {
-            for (int j = 0; j < methods.length - 1; j++) {
-                if (methods[j].getName().compareTo(methods[j+1].getName()) < 0)
-                {
-                    Method tempMethod = methods[j];
-                    methods[j] = methods[j+1];
-                    methods[j+1] = tempMethod;
-                }
-            }
-        }
-        return methods;
+        return sortMethods(methodArrayList.toArray(new Method[0]));
     }
 
     public void serializeObjBINFile() throws IOException {
@@ -361,12 +365,9 @@ public class main extends JFrame {
             fileOutputStream = new FileOutputStream(file);
             xStream = new XStream();
             xStream.toXML(workersList, fileOutputStream);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        finally {
-            assert fileOutputStream != null;
-            fileOutputStream.close();
+
+            if (fileOutputStream != null)
+                fileOutputStream.close();
             if (formatXMLButt.isSelected())
                 try {
                     //formatXML(file);
@@ -381,6 +382,11 @@ public class main extends JFrame {
                 archiverAdapter.formatXML();
                 file.delete();
             }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+
         }
 
     }
@@ -427,10 +433,11 @@ public class main extends JFrame {
                     fileInputStream.close();
             }
         }
-        assert tempList != null;
-        for (Worker worker : tempList.getWorkers()) {
-            workersList.addWorker(worker);
-            comboBox.addItem(worker.getName());
+        if  (tempList != null) {
+            for (Worker worker : tempList.getWorkers()) {
+                workersList.addWorker(worker);
+                comboBox.addItem(worker.getName());
+            }
         }
     }
 
